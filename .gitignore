@@ -1,0 +1,11 @@
+# real sales exports never go online (the made-up example is fine)
+*.csv
+*.xlsx
+!ejemplo/*.csv
+
+# local only: backups, early mockups with real names/numbers
+*.backup-*.html
+mockups/index.html
+mockups/make-excalidraw.js
+
+node_modules/

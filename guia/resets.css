@@ -1,0 +1,110 @@
+/* ============================================================
+   RESETS Y SETUPS (copied from your CodePen "css-resets-y-setups")
+   This is a copy-paste library. It is NOT linked to the app.
+   Copy the blocks you want into app/styles.css.
+   ============================================================ */
+
+
+/* ---------- 1. GENERAL RESET (paste first, at the top) ---------- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  interpolate-size: allow-keywords;
+}
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial;
+}
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+input, button, textarea, select {
+  font: inherit;
+}
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+p {
+  text-wrap: pretty;
+}
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+
+/* ---------- 2a. DARK + LIGHT THEME (black / white) ---------- */
+/* dark is the default; add class="light" to <body> for light mode */
+
+:root {
+  --bg-dark: hsl(0 0% 0%);
+  --bg: hsl(0 0% 5%);
+  --bg-light: hsl(0 0% 10%);
+  --text: hsl(0 0% 95%);
+  --text-muted: hsl(0 0% 70%);
+  --accent: hsl(0 0% 100%);
+}
+body.light {
+  --bg-dark: hsl(0 0% 90%);
+  --bg: hsl(0 0% 95%);
+  --bg-light: hsl(0 0% 100%);
+  --text: hsl(0 0% 5%);
+  --text-muted: hsl(0 0% 30%);
+}
+
+
+/* ---------- 2b. DARK PALETTE (blue-ish dark, alternative to 2a) ---------- */
+
+:root {
+  --bg-dark: hsl(235, 22%, 10%);
+  --bg: hsl(235, 22%, 13%);
+  --bg-light: hsl(235, 22%, 13%);
+  --text: hsl(0 0% 95%);
+  --text-muted: hsl(0 0% 70%);
+  --accent: hsl(0 0% 100%);
+}
+
+
+/* ---------- 3. SPACING SCALE ---------- */
+
+:root {
+  --space-1: 0.25rem;    /* 4px  */
+  --space-2: 0.5rem;     /* 8px  */
+  --space-3: 0.75rem;    /* 12px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-7: 1.75rem;    /* 28px */
+  --space-8: 2rem;       /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-14: 3.5rem;    /* 56px */
+  --space-16: 4rem;      /* 64px */
+
+  --space-100: 6.25rem;  /* 100px  */
+  --space-200: 12.5rem;  /* 200px  */
+  --space-300: 18.75rem; /* 300px  */
+  --space-400: 25rem;    /* 400px  */
+  --space-500: 31.25rem; /* 500px  */
+  --space-600: 37.5rem;  /* 600px  */
+  --space-700: 43.75rem; /* 700px  */
+  --space-800: 50rem;    /* 800px  */
+  --space-1200: 75rem;   /* 1200px */
+  --space-1500: 93.75rem;/* 1500px */
+  --space-1600: 100rem;  /* 1600px */
+  --space-1800: 120rem;  /* 1920px */
+}
+
+
+/* ---------- 4. USING THE COLORS (example) ---------- */
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}

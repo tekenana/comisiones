@@ -1,0 +1,12 @@
+body {
+  background-color: hsl(235, 22%, 10%);
+  color: hsl(0 0% 95%);
+  line-height: 1.5;
+  font-family: "Segoe UI";
+  padding: 5rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}

@@ -1,0 +1,966 @@
+<title>Comisiones Óptica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one work screen — top bar, then list | paper receipt | month totals (stacks on phones) */
+:root {
+  --bg: #eef1f4;
+  --panel: #ffffff;
+  --ink: #18202c;
+  --muted: #5f6b7c;
+  --line: #d5dbe3;
+  --accent: #1f5fae;
+  --accent-soft: #e4edf9;
+  --diego: #1f6fd0;
+  --diego-soft: #e2edfc;
+  --caro: #a63d86;
+  --caro-soft: #f7e4f1;
+  --warn: #a8670f;
+  --warn-soft: #fbf0dc;
+  --ok: #23804c;
+  --ok-soft: #e0f2e8;
+  --paper: #fffdf6;
+  --paper-line: #d9d2bd;
+  --paper-ink: #24221c;
+  --shadow: 0 8px 24px rgba(24, 32, 44, .09);
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --panel: #1a2029; --ink: #e6eaf0; --muted: #98a3b3; --line: #2c3542;
+    --accent: #7eaaf0; --accent-soft: #1f2c40;
+    --diego: #86b2f5; --diego-soft: #1d2b40; --caro: #e48cc8; --caro-soft: #3a2133;
+    --warn: #e2a64d; --warn-soft: #3a2c16; --ok: #6cc893; --ok-soft: #173326;
+    --paper: #f3efe3; --paper-line: #c9c1a9; --paper-ink: #24221c;
+    --shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --panel: #1a2029; --ink: #e6eaf0; --muted: #98a3b3; --line: #2c3542;
+  --accent: #7eaaf0; --accent-soft: #1f2c40;
+  --diego: #86b2f5; --diego-soft: #1d2b40; --caro: #e48cc8; --caro-soft: #3a2133;
+  --warn: #e2a64d; --warn-soft: #3a2c16; --ok: #6cc893; --ok-soft: #173326;
+  --paper: #f3efe3; --paper-line: #c9c1a9; --paper-ink: #24221c;
+  --shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.45 var(--sans);
+  padding-inline: 16px;
+  padding-block: 14px 24px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+kbd {
+  font: 600 11px var(--mono);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 5px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---- top bar ---- */
+.topbar {
+  max-width: 1400px;
+  margin: 0 auto 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+}
+.brand { font-weight: 700; letter-spacing: .01em; }
+.brand span { color: var(--accent); }
+.month { font-weight: 600; }
+.progress { flex: 1 1 160px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.theme { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.theme button { border: 0; background: var(--panel); padding: 5px 10px; font-size: 13px; color: var(--muted); }
+.theme button + button { border-left: 1px solid var(--line); }
+.theme button.on { background: var(--ink); color: var(--panel); }
+.file-btn input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.tag.D { background: var(--diego-soft); color: var(--diego); }
+.tag.C { background: var(--caro-soft); color: var(--caro); }
+.tag.Q { background: var(--warn-soft); color: var(--warn); }
+.tag.chg { border: 1px solid var(--warn); color: var(--warn); }
+.tag.demo { background: var(--warn-soft); color: var(--warn); }
+
+.notice {
+  max-width: 1400px;
+  margin: 0 auto 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.notice-item {
+  border-radius: 12px;
+  padding: 8px 8px 8px 14px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.notice-item span { flex: 1; min-width: 0; }
+.notice-item button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.notice-item button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+.notice[hidden] { display: none; }
+
+/* ---- 3 columns ---- */
+.layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr) minmax(250px, 310px);
+  gap: 14px;
+  align-items: start;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.panel h2 { margin: 0; font-size: 16px; }
+
+/* list */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 99px; padding: 3px 10px; font-size: 12px; }
+.chip.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.list { display: flex; flex-direction: column; gap: 6px; max-height: calc(100vh - 210px); min-height: 200px; overflow: auto; padding-right: 2px; }
+.item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: var(--panel);
+}
+.item:hover { border-color: var(--accent); }
+.item.cur { border-color: var(--accent); background: var(--accent-soft); }
+.item .meta { min-width: 0; flex: 1; }
+.item .who { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.item .pac { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* center */
+.center { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+.nav { display: flex; align-items: center; gap: 10px; }
+.nav button { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; width: 34px; height: 30px; }
+.nav .count { font-size: 17px; font-weight: 600; color: var(--accent); }
+.kude {
+  width: min(390px, 100%);
+  background: var(--paper);
+  color: var(--paper-ink);
+  border: 1px solid var(--paper-line);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  font: 13px/1.5 var(--mono);
+}
+.kude .c { text-align: center; }
+.kude hr { border: 0; border-top: 1px dashed var(--paper-line); margin: 9px 0; }
+.kude .line { display: flex; justify-content: space-between; gap: 12px; }
+.kude .line span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.kude .tot { font-weight: 600; font-size: 15px; }
+.kude .cob { margin-top: 6px; padding: 6px 8px; border-radius: 6px; font-family: var(--sans); }
+.kude .cob.D { background: #e2edfc; color: #1f6fd0; }
+.kude .cob.C { background: #f7e4f1; color: #a63d86; }
+.kude .cob.Q { background: #fbf0dc; color: #a8670f; }
+.kude .cob.mark { border: 1.5px solid currentColor; }
+.kude .noitems { color: #7a7462; font-size: 12px; }
+
+.choices { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.choice {
+  min-width: 130px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  font-size: 17px;
+  font-weight: 600;
+}
+.choice small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+.choice.D:hover, .choice.D.guess { border-color: var(--diego); background: var(--diego-soft); color: var(--diego); }
+.choice.C:hover, .choice.C.guess { border-color: var(--caro); background: var(--caro-soft); color: var(--caro); }
+.choice.Q { min-width: 0; font-size: 14px; font-weight: 500; }
+.choice.Q:hover { border-color: var(--warn); color: var(--warn); }
+.keys { text-align: center; color: var(--muted); font-size: 12px; line-height: 2; max-width: 520px; }
+
+/* totals */
+.kv { display: flex; justify-content: space-between; gap: 10px; }
+.kv b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.meter { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--warn); }
+.meter.pass i { background: var(--ok); }
+.person { border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 5px; }
+.person.D { background: var(--diego-soft); }
+.person.C { background: var(--caro-soft); }
+.person .name { font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; }
+.person.D .name { color: var(--diego); }
+.person.C .name { color: var(--caro); }
+.person .com { font-size: 19px; }
+.copy-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 7px 10px; font-weight: 600; }
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* "← Volver" in the resumen: back to the review screen */
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.home-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 3px 9px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.home-btn:hover { border-color: var(--accent); color: var(--accent); }
+.top-btn { border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); border-radius: 8px; padding: 6px 10px; font-weight: 600; }
+
+/* ---- resumen para el admin (also what gets printed) ---- */
+.report { max-width: 1000px; margin: 0 auto; }
+.report[hidden], .layout[hidden] { display: none; }
+.report .panel { gap: 14px; }
+/* Ajustes: names + system users */
+.people-panel { max-width: 1400px; margin: 0 auto 12px; background: var(--panel); border: 1px solid var(--accent); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.people-panel[hidden] { display: none; }
+.people-panel h2 { margin: 0; font-size: 16px; }
+.people-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.people-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.people-grid input { font: 14px var(--sans); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; }
+.report-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.save-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.save-opt { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.diff-up { color: var(--ok); } .diff-down { color: var(--caro); }
+.report-people { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.report h3 { margin: 6px 0 0; font-size: 14px; }
+.table-wrap { overflow-x: auto; }
+.report table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.report th, .report td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.report td.r, .report th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.report td.pac { white-space: normal; min-width: 160px; }
+.saved-note { font-size: 12px; color: var(--muted); }
+
+@media print {
+  body { background: #fff; color: #000; padding: 0; }
+  .topbar, .notice, .layout, .drop-hint, .no-print { display: none !important; }
+  .report { display: block !important; max-width: none; }
+  .report .panel { border: 0; padding: 0; }
+  .person { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .report th, .report td { white-space: normal; }
+}
+
+.drop-hint {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 3px dashed var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  z-index: 10;
+}
+.drop-hint[hidden] { display: none; }
+
+@media (max-width: 1050px) {
+  .layout { grid-template-columns: minmax(0, 1fr) minmax(250px, 310px); }
+  .list-panel { grid-column: 1 / -1; order: 3; }
+  .list { max-height: 320px; }
+}
+@media (max-width: 720px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .choice { min-width: 110px; }
+}
+@media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+</style>
+
+<header class="topbar">
+  <div class="brand">Comisiones <span>Óptica</span></div>
+  <div class="month" id="month">—</div>
+  <span class="tag demo" id="demo-tag">Ejemplo</span>
+  <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+  <span class="num" id="done-count">0 / 0 revisadas</span>
+  <span class="tag chg" id="chg-count">0 cambiadas</span>
+  <span class="tag Q" id="q-count">0 dudosas</span>
+  <button class="top-btn" id="open-report">Guardar resultado (PDF / Excel)</button>
+  <button class="copy-btn" id="open-people" title="Nombres y usuarios del sistema">Ajustes</button>
+  <label class="file-btn">Cargar CSV del mes<input type="file" id="file" accept=".csv,text/csv"></label>
+  <div class="theme" role="group" aria-label="Tema">
+    <button data-theme-pick="auto" title="Seguir el sistema">Auto</button>
+    <button data-theme-pick="light" title="Modo claro">☀</button>
+    <button data-theme-pick="dark" title="Modo oscuro">☾</button>
+  </div>
+</header>
+
+<div class="notice" id="notice" hidden></div>
+
+<form class="people-panel" id="people-panel" hidden>
+  <div>
+    <h2>Ajustes: quién es quién</h2>
+    <div class="small muted">El nombre que ves en la página, y el usuario tal como aparece en la columna "COBRADO POR" del informe. Se guarda solo en este navegador.</div>
+  </div>
+  <div class="people-grid">
+    <label>Nombre (tecla D)<input id="p-d-name" required></label>
+    <label>Usuario en el sistema<input id="p-d-user" list="cob-users" required></label>
+    <label>Nombre (tecla C)<input id="p-c-name" required></label>
+    <label>Usuario en el sistema<input id="p-c-user" list="cob-users" required></label>
+  </div>
+  <datalist id="cob-users"></datalist>
+  <div class="report-actions">
+    <button class="top-btn" type="submit">Guardar</button>
+    <button class="copy-btn" type="button" id="close-people">Cancelar</button>
+  </div>
+</form>
+
+<div class="layout" id="layout">
+  <aside class="panel list-panel">
+    <h2>Facturas</h2>
+    <div class="chips" id="chips"></div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <main class="center">
+    <div class="nav">
+      <button id="prev" title="Anterior (←)" aria-label="Factura anterior">←</button>
+      <div class="count" id="count">—</div>
+      <button id="next" title="Siguiente (→)" aria-label="Factura siguiente">→</button>
+    </div>
+    <div class="muted small">de la última factura a la primera, como la pila impresa</div>
+    <div class="kude" id="kude"></div>
+    <div class="choices">
+      <button class="choice D" id="btn-d"><span data-name="D"></span><small><kbd>D</kbd></small></button>
+      <button class="choice C" id="btn-c"><span data-name="C"></span><small><kbd>C</kbd></small></button>
+    </div>
+    <button class="choice Q" id="btn-q">No sé, después <small><kbd>?</kbd></small></button>
+    <div class="keys">
+      <kbd>D</kbd> <span data-name="D"></span> · <kbd>C</kbd> <span data-name="C"></span> · <kbd>Enter</kbd> dejar lo que dice el sistema · <kbd>?</kbd> no sé<br>
+      <kbd>←</kbd> <kbd>→</kbd> moverse entre facturas · clic en la lista para saltar a una
+    </div>
+  </main>
+
+  <aside class="panel">
+    <h2>Total del mes</h2>
+    <div class="kv"><span>Total con IVA</span><b id="t-all">0</b></div>
+    <div class="kv"><span>Sin IVA (÷ 1,10)</span><b id="t-net">0</b></div>
+    <div class="kv small"><span>Meta clínica 30.000.000</span><b id="rate-tag">5%</b></div>
+    <div class="meter" id="meter"><i id="meter-fill"></i></div>
+    <div class="small muted" id="meter-note"></div>
+    <div id="people"></div>
+    <button class="copy-btn" id="copy">Copiar resumen</button>
+    <button class="copy-btn" id="open-report-2">Guardar resultado (PDF / Excel)</button>
+    <div class="small muted" id="copy-note">Las facturas sin revisar cuentan con "cobrado por" del sistema hasta que las revises.</div>
+  </aside>
+</div>
+
+<section class="report" id="report" hidden>
+  <div class="panel">
+    <div class="panel-head no-print">
+      <button class="home-btn" data-home>← Volver</button>
+    </div>
+    <div class="no-print">
+      <h2 style="margin:0">Guardar el resultado del mes</h2>
+      <div class="muted small">Elegí cómo mandárselo al admin. Abajo ves exactamente lo que va en el PDF.</div>
+    </div>
+    <div class="save-options no-print">
+      <div class="save-opt">
+        <button class="top-btn" id="print">Guardar como PDF</button>
+        <div class="small muted">Esta hoja: la comisión de cada uno, la comparación sistema vs. corregido, las facturas que cambiaste y la lista de cada uno. En la ventana de imprimir elegí "Guardar como PDF".</div>
+      </div>
+      <div class="save-opt">
+        <button class="copy-btn" id="save-csv">Guardar como Excel</button>
+        <div class="small muted">Todas las facturas del mes, igual que el informe del sistema, con 2 columnas nuevas: <b>VENDEDOR FINAL</b> y <b>REVISION</b> (IGUAL / CAMBIADA). Se abre en Excel.</div>
+      </div>
+      <div class="save-opt">
+        <button class="copy-btn" id="save-page">Guardar la página</button>
+        <div class="small muted">Esta misma app con tus correcciones adentro. Se abre con doble clic, sin internet ni CSV.</div>
+      </div>
+    </div>
+    <div class="saved-note no-print" id="save-note"></div>
+    <div id="report-body"></div>
+  </div>
+</section>
+
+<div class="drop-hint" id="drop" hidden>Soltá el CSV acá</div>
+
+<script>
+// ---------- clean copy of this page (taken before anything renders) ----------
+// Used by "Guardar página para el admin": same page + the month's data baked in.
+const PAGE = {
+  title: document.title,
+  style: [...document.querySelectorAll('style')].find((s) => s.textContent.includes('.kude'))?.outerHTML || '',
+  markup: ['.topbar', '#notice', '#people-panel', '.layout', '#report', '#drop'].map((q) => document.querySelector(q)?.outerHTML || '').join('\n'),
+  code: document.currentScript.textContent,
+};
+
+// ---------- rules ----------
+const GOAL = 30000000;  // clinic total (with IVA) that unlocks 6%
+const DIV = 1.10;       // remove 10% IVA (confirmed against August pay)
+// The two people and their user in the billing system ("COBRADO POR").
+// Set in Ajustes and kept in this browser, so no real names live in the code.
+const PEOPLE_KEY = 'comisiones:people';
+const DEFAULT_PEOPLE = { D: { name: 'Vendedor D', user: 'USUARIO 1' }, C: { name: 'Vendedor C', user: 'USUARIO 2' } };
+const NAME = {};  // 'D' -> name shown on the page
+let USERS = {};   // "COBRADO POR" text -> 'D' / 'C'
+let PEOPLE;
+function setPeople(p) {
+  PEOPLE = { D: { ...p.D }, C: { ...p.C } };
+  USERS = {};
+  for (const k of ['D', 'C']) {
+    NAME[k] = PEOPLE[k].name;
+    USERS[PEOPLE[k].user.trim().toUpperCase()] = k;
+  }
+  document.querySelectorAll('[data-name]').forEach((el) => (el.textContent = NAME[el.dataset.name]));
+}
+function storedPeople() {
+  try { const v = JSON.parse(localStorage.getItem(PEOPLE_KEY) || 'null'); if (v?.D?.user && v?.C?.user) return v; } catch (e) {}
+  return null;
+}
+setPeople(storedPeople() || DEFAULT_PEOPLE);
+
+const fmt = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- CSV ----------
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  const rows = [];
+  let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+      else f += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(f); f = ''; }
+    else if (c === '\n') { row.push(f.replace(/\r$/, '')); rows.push(row); row = []; f = ''; }
+    else f += c;
+  }
+  if (f || row.length) { row.push(f.replace(/\r$/, '')); rows.push(row); }
+  return rows;
+}
+const money = (s) => Number(String(s || '').replace(/\./g, '').replace(',', '.')) || 0;
+// "29-09-2026 18:35" -> sortable "2026-09-29 18:35"
+const sortKey = (f) => { const m = /(\d{2})-(\d{2})-(\d{4})\s*(\d{2}:\d{2})?/.exec(f || ''); return m ? `${m[3]}-${m[2]}-${m[1]} ${m[4] || ''}` : ''; };
+
+// The 2 columns this page adds when it exports a corrected CSV
+const EXTRA = ['VENDEDOR FINAL', 'REVISION'];
+// VENDEDOR FINAL holds the person's name in capitals (or just D / C)
+const finalOf = (s) => { s = s.trim().toUpperCase(); return s === 'D' || s === 'C' ? s : ['D', 'C'].find((k) => NAME[k].toUpperCase() === s) || null; };
+// Original CSV header + the rows with no factura (totals row), kept for the corrected export
+let CSV = null;
+
+function receiptsFromCSV(text) {
+  let rows = parseCSV(text).filter((r) => r.some((c) => c.trim()));
+  const H0 = rows[0].map((h) => h.trim().toUpperCase());
+  const fin = H0.indexOf(EXTRA[0]), rev = H0.indexOf(EXTRA[1]);
+  // a CSV this page exported: read the corrections, then drop those 2 columns again
+  const drop = new Set([fin, rev].filter((i) => i >= 0));
+  const marks = rows.map((r) => {
+    const v = (r[rev] || '').trim().toUpperCase();
+    // only IGUAL / CAMBIADA were really reviewed; SIN REVISAR stays pending
+    return { fin: v === 'IGUAL' || v === 'CAMBIADA' ? finalOf(r[fin] || '') : null, rev: v };
+  });
+  rows = rows.map((r) => r.filter((_, i) => !drop.has(i)));
+  const H = rows[0].map((h) => h.trim().toUpperCase());
+  CSV = { header: rows[0], tail: [] };
+  const col = (name) => H.indexOf(name);
+  const need = ['FACTURA', 'FECHA', 'FAC. PARTICULAR', 'COBRADO POR'];
+  const missing = need.filter((n) => col(n) < 0);
+  if (missing.length) throw new Error('Al CSV le faltan columnas: ' + missing.join(', ') + '. Exportá el informe "Facturas" con todas las columnas.');
+  const byNro = new Map();
+  for (const [ri, r] of rows.entries()) {
+    if (ri === 0) continue;
+    const nro = (r[col('FACTURA')] || '').trim();
+    if (!nro) { CSV.tail.push(r); continue; } // totals row at the end
+    if ((r[col('ANULADO')] || '').toUpperCase().includes('ANULAD')) continue;
+    const amount = money(r[col('FAC. PARTICULAR')]);
+    const concepto = col('CONCEPTO') >= 0 ? (r[col('CONCEPTO')] || '').trim() : '';
+    let rec = byNro.get(nro);
+    if (!rec) {
+      const who = (r[col('COBRADO POR')] || '').trim().toUpperCase();
+      rec = {
+        nro,
+        fecha: (r[col('FECHA')] || '').trim(),
+        paciente: (r[col('PACIENTE')] || r[col('RAZON SOCIAL')] || '').trim(),
+        pago: col('FORMAPAGO') >= 0 ? (r[col('FORMAPAGO')] || '').trim() : '',
+        obs: col('OBS') >= 0 ? (r[col('OBS')] || '').trim() : '',
+        cobradoTxt: who,
+        cob: USERS[who] || null,
+        items: [],
+        total: 0,
+        iva: 0,
+        rows: [],
+        fin: marks[ri].fin,                    // from a corrected CSV, if any
+        dudosa: marks[ri].rev === 'DUDOSA',
+      };
+      byNro.set(nro, rec);
+    }
+    rec.rows.push(r);
+    // Detallado = one line per item (sum them); Por Documento = one line per receipt
+    if (concepto) rec.items.push([concepto, amount]);
+    rec.total += amount;
+    rec.iva += money(r[col('IVA')]);
+  }
+  return [...byNro.values()];
+}
+
+// ---------- example data (made up, shown until a CSV is loaded) ----------
+function exampleReceipts() {
+  const names = ['LAURA BENITEZ', 'JORGE ACOSTA', 'MARIA GIMENEZ', 'PEDRO VILLALBA', 'ANA DUARTE', 'LUIS ORTIZ', 'ROSA CABRERA', 'SOFIA NUÑEZ', 'CARLOS AYALA', 'ELENA ROJAS'];
+  const items = [['LENTE DE RECETA', 350000], ['LENTE DE RECETA', 700000], ['MULTIFOCALES', 1200000], ['ARMAZON GAMA MEDIA', 450000],
+    ['CRISTAL MONOFOCAL CON ANTIRREFLEX', 300000], ['LENTE DE SOL', 400000], ['CONSULTA', 120000], ['LIMPIEZA PROFUNDA', 30000], ['COMPOSTURA/ SOLDADURA', 60000]];
+  const pagos = ['TRANSFERENCIA', 'EFECTIVO', 'TARJETA DEBITO', 'TARJETA CREDITO'];
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const pick = (a) => a[Math.floor(rnd() * a.length)];
+  const out = [];
+  for (let i = 0; i < 40; i++) {
+    const its = rnd() < 0.7 ? [pick(items)] : [pick(items), pick(items)];
+    const total = its.reduce((s, it) => s + it[1], 0);
+    const day = 1 + Math.floor(i / 1.4);
+    const cob = rnd() < 0.5 ? 'D' : 'C';
+    out.push({
+      nro: '001-002-' + String(900 + i).padStart(7, '0'),
+      fecha: `${String(day).padStart(2, '0')}-09-2026 ${String(8 + Math.floor(rnd() * 10)).padStart(2, '0')}:${String(Math.floor(rnd() * 60)).padStart(2, '0')}`,
+      paciente: pick(names), pago: pick(pagos), obs: '',
+      cobradoTxt: PEOPLE[cob].user.toUpperCase(), cob,
+      items: its, total, iva: total / 11,
+    });
+  }
+  return out;
+}
+
+// ---------- state ----------
+const S = { recs: [], choice: {}, unsure: new Set(), cur: 0, filter: 'todas', demo: true, key: '', notices: [] };
+const seller = (r) => S.choice[r.nro] || r.cob;
+const reviewed = (r) => !!S.choice[r.nro];
+const changed = (r) => reviewed(r) && S.choice[r.nro] !== r.cob;
+
+function save() {
+  if (S.demo) return;
+  try { localStorage.setItem(S.key, JSON.stringify({ choice: S.choice, unsure: [...S.unsure] })); } catch (e) {}
+}
+function restore() {
+  try {
+    const v = JSON.parse(localStorage.getItem(S.key) || 'null');
+    if (v) { S.choice = v.choice || {}; S.unsure = new Set(v.unsure || []); }
+  } catch (e) {}
+}
+
+// saved = corrections that came inside a file (admin page or corrected CSV); they win over this browser's memory
+function load(recs, demo, label, saved) {
+  // newest first, like the printed pile
+  recs.sort((a, b) => sortKey(b.fecha).localeCompare(sortKey(a.fecha)) || b.nro.localeCompare(a.nro));
+  S.recs = recs; S.demo = demo; S.choice = {}; S.unsure = new Set(); S.cur = 0; S.filter = 'todas';
+  S.key = 'comisiones:' + (recs.at(-1)?.nro || '') + ':' + (recs[0]?.nro || '');
+  if (!saved && recs.some((r) => r.fin || r.dudosa)) {
+    saved = { choice: {}, unsure: [] };
+    for (const r of recs) { if (r.fin) saved.choice[r.nro] = r.fin; if (r.dudosa) saved.unsure.push(r.nro); }
+  }
+  if (saved) { S.choice = { ...saved.choice }; S.unsure = new Set(saved.unsure); save(); }
+  else if (!demo) restore();
+  const first = nextPending(-1);
+  S.cur = first < 0 ? 0 : first;
+  $('demo-tag').hidden = !demo;
+  $('month').textContent = label;
+  checks();
+  render();
+}
+
+// warnings: missing numbers in the sequence, names the app doesn't know
+// Warnings can be closed with ✕. Closed ones are remembered in this browser by id,
+// so a NEW missing number still shows up next month.
+const DISMISS_KEY = 'comisiones:dismissed';
+const hiddenNow = new Set(); // still hides them this session if storage is blocked
+function dismissedIds() {
+  try { return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch (e) { return new Set(); }
+}
+function dismiss(id) {
+  const d = dismissedIds();
+  d.add(id);
+  try { localStorage.setItem(DISMISS_KEY, JSON.stringify([...d])); } catch (e) {}
+  hiddenNow.add(id);
+  showNotices();
+}
+function showNotices() {
+  const d = dismissedIds();
+  const list = S.notices.filter((m) => !d.has(m.id) && !hiddenNow.has(m.id));
+  $('notice').hidden = !list.length;
+  $('notice').innerHTML = list.map((m) => `<div class="notice-item"><span>${esc(m.text)}</span>
+    <button data-dismiss="${esc(m.id)}" title="Cerrar aviso" aria-label="Cerrar aviso">✕</button></div>`).join('');
+}
+
+function checks() {
+  const msgs = [];
+  if (S.demo) msgs.push({ id: 'demo', text: 'Datos de ejemplo inventados. Cargá el CSV del informe "Facturas" (botón arriba o arrastralo a la página) para ver el mes real. El archivo se lee en esta computadora y no se sube a ningún lado.' });
+  else {
+    const nums = S.recs.map((r) => +r.nro.slice(-7)).filter(Boolean).sort((a, b) => a - b);
+    const gaps = [];
+    for (let i = 1; i < nums.length; i++) for (let k = nums[i - 1] + 1; k < nums[i] && gaps.length < 20; k++) gaps.push(k);
+    if (gaps.length) msgs.push({ id: 'gaps:' + gaps.join(','), text: `Faltan números de factura en la secuencia: ${gaps.join(', ')}. Puede ser de la otra sucursal (oftalmología) o una anulada.` });
+    const unknown = [...new Set(S.recs.filter((r) => !r.cob).map((r) => r.cobradoTxt || '(vacío)'))];
+    if (unknown.length) msgs.push({ id: 'unknown:' + unknown.join(','), text: `"Cobrado por" desconocido: ${unknown.join(', ')}. Esas facturas quedan como dudosas hasta que elijas. Si es uno de ustedes, ponelo en Ajustes (arriba).` });
+    S.recs.filter((r) => !r.cob).forEach((r) => { if (!S.choice[r.nro]) S.unsure.add(r.nro); });
+  }
+  S.notices = msgs;
+  showNotices();
+}
+
+function nextPending(from) {
+  const n = S.recs.length;
+  for (let k = 1; k <= n; k++) {
+    const i = (from + k + n) % n;
+    const r = S.recs[i];
+    if (!reviewed(r) && !S.unsure.has(r.nro)) return i;
+  }
+  return -1;
+}
+
+function act(k) {
+  const r = S.recs[S.cur];
+  if (!r) return;
+  if (k === '?') { S.unsure.add(r.nro); delete S.choice[r.nro]; }
+  else {
+    const who = k === 'keep' ? r.cob : k;
+    if (!who) return; // unknown "cobrado por": must pick D or C
+    S.choice[r.nro] = who; S.unsure.delete(r.nro);
+  }
+  save();
+  const nx = nextPending(S.cur);
+  if (nx >= 0) S.cur = nx;
+  render(true);
+}
+function go(i) { if (!S.recs.length) return; S.cur = (i + S.recs.length) % S.recs.length; render(true); }
+
+// ← Volver: close the resumen, back to the factura you were on
+function home() {
+  $('report').hidden = true; $('layout').hidden = false;
+  render(true);
+  scrollTo({ top: 0 });
+}
+function openReport() {
+  renderReport();
+  $('layout').hidden = true; $('report').hidden = false;
+  scrollTo({ top: 0 });
+}
+
+// ---------- totals ----------
+function totals() {
+  const t = { all: 0, D: 0, C: 0, none: 0 };
+  for (const r of S.recs) { t.all += r.total; const w = seller(r); if (w) t[w] += r.total; else t.none += r.total; }
+  t.rate = t.all > GOAL ? 0.06 : 0.05;
+  return t;
+}
+
+// ---------- render ----------
+function render(scroll) {
+  const n = S.recs.length;
+  const r = S.recs[S.cur];
+  const nDone = S.recs.filter(reviewed).length;
+  const nChg = S.recs.filter(changed).length;
+
+  $('bar').style.width = (n ? nDone / n * 100 : 0) + '%';
+  $('done-count').textContent = `${nDone} / ${n} revisadas`;
+  $('chg-count').textContent = `${nChg} cambiadas`;
+  $('q-count').textContent = `${S.unsure.size} dudosas`;
+
+  // chips + list
+  const F = {
+    todas: () => true,
+    pendientes: (x) => !reviewed(x) && !S.unsure.has(x.nro),
+    dudosas: (x) => S.unsure.has(x.nro),
+    cambiadas: changed,
+  };
+  const counts = { todas: n, pendientes: S.recs.filter(F.pendientes).length, dudosas: S.unsure.size, cambiadas: nChg };
+  const labels = { todas: 'Todas', pendientes: 'Pendientes', dudosas: 'Dudosas', cambiadas: 'Cambiadas' };
+  $('chips').innerHTML = Object.keys(F).map((k) => `<button class="chip ${S.filter === k ? 'on' : ''}" data-f="${k}">${labels[k]} ${counts[k]}</button>`).join('');
+  const shown = S.recs.map((x, i) => [x, i]).filter(([x]) => F[S.filter](x));
+  $('list').innerHTML = shown.map(([x, i]) => {
+    const st = S.unsure.has(x.nro) ? '<span class="tag Q">?</span>' : reviewed(x) ? `<span class="tag ${S.choice[x.nro]}">${S.choice[x.nro]}</span>` : '<span class="muted small">—</span>';
+    return `<button class="item ${i === S.cur ? 'cur' : ''}" data-i="${i}">
+      <span class="meta"><b>${esc(x.nro.slice(-4))}</b> <span class="small pac">${esc(x.paciente)}</span>
+      <span class="muted small num">${esc(x.fecha.slice(0, 5))} · ${fmt(x.total)}</span></span>
+      <span class="who">${st}${changed(x) ? '<span class="tag chg">cambiada</span>' : ''}</span></button>`;
+  }).join('') || '<div class="muted small">Nada acá.</div>';
+  if (scroll) $('list').querySelector('.item.cur')?.scrollIntoView({ block: 'nearest' });
+
+  // receipt
+  $('count').textContent = n ? `Factura ${S.cur + 1} de ${n}` : 'Sin facturas';
+  if (r) {
+    const mine = S.choice[r.nro];
+    const items = r.items.length
+      ? r.items.map((it) => `<div class="line"><span>${esc(it[0])}</span><span>${fmt(it[1])}</span></div>`).join('')
+      : '<div class="noitems">Artículos no incluidos. Exportá en modo "Detallado" para verlos.</div>';
+    $('kude').innerHTML = `
+      <div class="c"><b>Óptica</b><br>KuDE de Factura Electrónica</div><hr>
+      <div>Factura Nº: ${esc(r.nro)}</div>
+      <div>Fecha: ${esc(r.fecha)}</div>
+      <div>Pac: ${esc(r.paciente)}</div>
+      ${r.pago ? `<div>Pago: ${esc(r.pago)}</div>` : ''}
+      ${r.obs ? `<div>Obs: ${esc(r.obs)}</div>` : ''}
+      <hr>${items}<hr>
+      <div class="line tot"><span>Total Gs.</span><span>${fmt(r.total)}</span></div>
+      <div class="line"><span>IVA 10%</span><span>${fmt(r.iva || r.total / 11)}</span></div><hr>
+      <div class="cob ${r.cob || 'Q'}">Cobrado por (sistema): <b>${esc(r.cobradoTxt || '—')}</b></div>
+      ${mine ? `<div class="cob mark ${mine}">✓ Asignada a <b>${NAME[mine]}</b>${changed(r) ? ' (cambiada)' : ''}</div>` : ''}
+      ${S.unsure.has(r.nro) ? '<div class="cob mark Q">? Marcada como dudosa</div>' : ''}`;
+    $('btn-d').classList.toggle('guess', r.cob === 'D');
+    $('btn-c').classList.toggle('guess', r.cob === 'C');
+    $('btn-d').querySelector('small').innerHTML = '<kbd>D</kbd>' + (r.cob === 'D' ? ' · o Enter' : '');
+    $('btn-c').querySelector('small').innerHTML = '<kbd>C</kbd>' + (r.cob === 'C' ? ' · o Enter' : '');
+  }
+
+  // totals
+  const t = totals(), pct = Math.round(t.rate * 100), pass = t.all > GOAL;
+  $('t-all').textContent = fmt(t.all);
+  $('t-net').textContent = fmt(t.all / DIV);
+  $('rate-tag').textContent = pass ? '✓ 6%' : '5%';
+  $('meter').classList.toggle('pass', pass);
+  $('meter-fill').style.width = Math.min(100, t.all / GOAL * 100) + '%';
+  $('meter-note').textContent = pass ? 'Pasaron la meta: todo el mes va al 6%.' : `Faltan ${fmt(GOAL - t.all)} para el 6%.`;
+  $('people').innerHTML = ['C', 'D'].map((k) => `
+    <div class="person ${k}" style="margin-top:10px">
+      <div class="name">${NAME[k]}</div>
+      <div class="kv"><span>Total con IVA</span><b>${fmt(t[k])}</b></div>
+      <div class="kv"><span>Sin IVA (÷ 1,10)</span><b>${fmt(t[k] / DIV)}</b></div>
+      <div class="kv com"><span>Comisión ${pct}%</span><b>${fmt(t[k] / DIV * t.rate)}</b></div>
+    </div>`).join('') + (t.none ? `<div class="small" style="color:var(--warn)">Sin asignar: ${fmt(t.none)}</div>` : '');
+}
+
+function summaryText() {
+  const t = totals(), pct = Math.round(t.rate * 100);
+  const lines = [`Comisiones ${$('month').textContent}`, `Total clínica: ${fmt(t.all)} (${pct}%)`, ''];
+  for (const k of ['D', 'C']) {
+    lines.push(NAME[k], `Total con IVA: ${fmt(t[k])}`, `Sin IVA: ${fmt(t[k] / DIV)}`, `Comisión ${pct}%: ${fmt(t[k] / DIV * t.rate)}`, '');
+  }
+  const pend = S.recs.filter((r) => !reviewed(r)).length;
+  if (pend) lines.push(`(${pend} facturas sin revisar)`);
+  return lines.join('\n').trim();
+}
+
+// ---------- "Guardar resultado": what goes in the PDF ----------
+function renderReport() {
+  const t = totals(), pct = Math.round(t.rate * 100);
+  const pend = S.recs.filter((r) => !reviewed(r)).length;
+  const row = (r) => `<tr><td>${esc(r.nro.slice(-7))}</td><td>${esc(r.fecha.slice(0, 10))}</td><td class="pac">${esc(r.paciente)}</td>
+    <td class="r">${fmt(r.total)}</td><td>${esc(NAME[r.cob] || r.cobradoTxt || '—')}</td><td><b>${esc(NAME[seller(r)] || '—')}</b></td></tr>`;
+  const table = (list) => list.length ? `<div class="table-wrap"><table>
+    <thead><tr><th>Factura</th><th>Fecha</th><th>Paciente</th><th class="r">Total Gs.</th><th>Decía el sistema</th><th>Quedó</th></tr></thead>
+    <tbody>${list.map(row).join('')}</tbody></table></div>` : '<div class="muted small">Ninguna.</div>';
+  const chg = S.recs.filter(changed);
+  // comparison: what the system's "cobrado por" gives vs. after your corrections (same rate, the clinic total doesn't change)
+  const sys = { D: 0, C: 0 };
+  for (const r of S.recs) if (r.cob) sys[r.cob] += r.total;
+  const com = (v) => v / DIV * t.rate;
+  const sign = (v) => `<span class="${v > 0 ? 'diff-up' : v < 0 ? 'diff-down' : ''}">${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v))}</span>`;
+  const compare = `<div class="table-wrap"><table>
+    <thead><tr><th></th><th class="r">Ventas según sistema</th><th class="r">Ventas corregidas</th><th class="r">Comisión según sistema</th><th class="r">Comisión corregida</th><th class="r">Diferencia</th></tr></thead>
+    <tbody>${['D', 'C'].map((k) => `<tr><td><b>${NAME[k]}</b></td><td class="r">${fmt(sys[k])}</td><td class="r">${fmt(t[k])}</td>
+      <td class="r">${fmt(com(sys[k]))}</td><td class="r"><b>${fmt(com(t[k]))}</b></td><td class="r">${sign(com(t[k]) - com(sys[k]))}</td></tr>`).join('')}</tbody></table></div>`;
+  $('report-body').innerHTML = `
+    <div><h2 style="margin:0">Comisiones ${esc($('month').textContent)}</h2>
+    <div class="muted small">${S.recs.length} facturas · ${chg.length} corregidas · ${pend ? pend + ' sin revisar (cuentan con el sistema)' : 'todas revisadas'}${S.demo ? ' · DATOS DE EJEMPLO' : ''}</div></div>
+    <div class="kv"><span>Total clínica con IVA</span><b>${fmt(t.all)}</b></div>
+    <div class="kv"><span>Meta 30.000.000</span><b>${t.all > GOAL ? 'pasada → 6%' : 'no pasada → 5%'}</b></div>
+    <div class="report-people">${['D', 'C'].map((k) => `
+      <div class="person ${k}">
+        <div class="name">${NAME[k]}</div>
+        <div class="kv"><span>Total con IVA</span><b>${fmt(t[k])}</b></div>
+        <div class="kv"><span>Sin IVA (÷ 1,10)</span><b>${fmt(t[k] / DIV)}</b></div>
+        <div class="kv com"><span>Comisión ${pct}%</span><b>${fmt(t[k] / DIV * t.rate)}</b></div>
+      </div>`).join('')}</div>
+    ${t.none ? `<div class="small" style="color:var(--warn)">Sin asignar: ${fmt(t.none)}</div>` : ''}
+    <h3>Comparación: sistema vs. corregido (${pct}%, ÷ 1,10)</h3>${compare}
+    <h3>Facturas cambiadas (${chg.length}) — el sistema decía otra persona</h3>${table(chg)}
+    ${['D', 'C'].map((k) => { const l = S.recs.filter((r) => seller(r) === k); return `<h3>Facturas de ${NAME[k]} (${l.length})</h3>${table(l)}`; }).join('')}`;
+}
+
+// ---------- files to hand over ----------
+const csvCell = (v) => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+const estado = (r) => S.unsure.has(r.nro) ? 'DUDOSA' : !reviewed(r) ? 'SIN REVISAR' : changed(r) ? 'CAMBIADA' : 'IGUAL';
+function correctedCSV() {
+  const out = [];
+  if (CSV && S.recs.every((r) => r.rows?.length)) {
+    out.push([...CSV.header, ...EXTRA]);
+    for (const r of S.recs) for (const line of r.rows) out.push([...line, (NAME[seller(r)] || '').toUpperCase(), estado(r)]);
+    for (const line of CSV.tail) out.push([...line, '', '']);
+  } else { // example data: no original rows, write a simple table
+    out.push(['FACTURA', 'FECHA', 'PACIENTE', 'FAC. PARTICULAR', 'IVA', 'COBRADO POR', ...EXTRA]);
+    for (const r of S.recs) out.push([r.nro, r.fecha, r.paciente, fmt(r.total), fmt(r.iva), r.cobradoTxt, (NAME[seller(r)] || '').toUpperCase(), estado(r)]);
+  }
+  return '﻿' + out.map((l) => l.map(csvCell).join(',')).join('\r\n');
+}
+function adminPage() {
+  const data = { label: $('month').textContent, demo: S.demo, savedAt: new Date().toISOString(), csv: CSV, people: PEOPLE,
+    recs: S.recs, choice: S.choice, unsure: [...S.unsure] };
+  const json = JSON.stringify(data).replace(/</g, '\\u003c');
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(PAGE.title)} · ${esc(data.label)}</title>${PAGE.style}</head><body>
+${PAGE.markup}
+<script type="application/json" id="saved-data">${json}<\/script>
+<script>${PAGE.code}<\/script>
+</body></html>`;
+}
+const fileName = (ext) => 'comisiones-' + $('month').textContent.toLowerCase().replace(/\s+/g, '-') + '.' + ext;
+// On claude.ai the page asks the viewer first ("downloads"); opened as a local file it downloads directly.
+let downloadsP = null;
+async function offerFile(filename, text) {
+  if (window.claude?.use) {
+    downloadsP ||= window.claude.use('downloads');
+    const dl = await downloadsP;
+    if (dl) {
+      try { await dl.save({ filename, data: text }); return 'Guardado: ' + filename; }
+      catch (err) { return err?.code === 'declined' ? 'Descarga cancelada.' : 'No se pudo guardar acá (' + (err?.code || 'error') + ').'; }
+    }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = filename;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  return 'Guardado: ' + filename;
+}
+
+// ---------- events ----------
+// Theme: Auto (follow the system), light or dark; remembered in this browser
+function setTheme(t) {
+  if (t === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = t;
+  document.querySelectorAll('[data-theme-pick]').forEach((b) => b.classList.toggle('on', b.dataset.themePick === t));
+  try { localStorage.setItem('comisiones:theme', t); } catch (e) {}
+}
+document.querySelector('.theme').addEventListener('click', (e) => { const b = e.target.closest('[data-theme-pick]'); if (b) setTheme(b.dataset.themePick); });
+let savedTheme = 'auto';
+try { savedTheme = localStorage.getItem('comisiones:theme') || 'auto'; } catch (e) {}
+setTheme(savedTheme);
+
+$('notice').addEventListener('click', (e) => { const b = e.target.closest('[data-dismiss]'); if (b) dismiss(b.dataset.dismiss); });
+$('chips').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (b) { S.filter = b.dataset.f; render(); } });
+$('list').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (b) go(+b.dataset.i); });
+document.querySelectorAll('[data-home]').forEach((b) => (b.onclick = home));
+// ---- Ajustes: who is who ----
+function openPeople() {
+  for (const k of ['D', 'C']) { $(`p-${k.toLowerCase()}-name`).value = PEOPLE[k].name; $(`p-${k.toLowerCase()}-user`).value = PEOPLE[k].user; }
+  // suggest the "COBRADO POR" values found in the loaded CSV
+  $('cob-users').innerHTML = [...new Set(S.recs.map((r) => r.cobradoTxt).filter(Boolean))].map((u) => `<option value="${esc(u)}">`).join('');
+  $('people-panel').hidden = false;
+  $('p-d-name').focus();
+}
+$('open-people').onclick = openPeople;
+$('close-people').onclick = () => { $('people-panel').hidden = true; };
+$('people-panel').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = (id) => $(id).value.trim();
+  setPeople({ D: { name: v('p-d-name'), user: v('p-d-user') }, C: { name: v('p-c-name'), user: v('p-c-user') } });
+  try { localStorage.setItem(PEOPLE_KEY, JSON.stringify(PEOPLE)); } catch (err) {}
+  $('people-panel').hidden = true;
+  // re-read "cobrado por" for the loaded month; receipts that were only "dudosa" because the user was unknown get released
+  for (const r of S.recs) {
+    const before = r.cob;
+    r.cob = USERS[r.cobradoTxt] || null;
+    if (!before && r.cob && !S.choice[r.nro]) S.unsure.delete(r.nro);
+  }
+  save();
+  checks();
+  render();
+});
+$('open-report').onclick = openReport;
+$('open-report-2').onclick = openReport;
+$('print').onclick = () => print();
+$('save-csv').onclick = async () => { $('save-note').textContent = await offerFile(fileName('csv'), correctedCSV()); };
+$('save-page').onclick = async () => { $('save-note').textContent = await offerFile(fileName('html'), adminPage()); };
+$('prev').onclick = () => go(S.cur - 1);
+$('next').onclick = () => go(S.cur + 1);
+$('btn-d').onclick = () => act('D');
+$('btn-c').onclick = () => act('C');
+$('btn-q').onclick = () => act('?');
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'd') act('D');
+  else if (k === 'c') act('C');
+  else if (k === 'enter' && !e.target.closest('button')) act('keep');
+  else if (k === '?' || k === 'u') act('?');
+  else if (k === 'arrowright' || k === 'arrowdown') { e.preventDefault(); go(S.cur + 1); }
+  else if (k === 'arrowleft' || k === 'arrowup') { e.preventDefault(); go(S.cur - 1); }
+  else return;
+});
+$('copy').onclick = async () => {
+  const text = summaryText();
+  try { await navigator.clipboard.writeText(text); $('copy-note').textContent = 'Resumen copiado. Pegalo donde quieras.'; }
+  catch (err) { $('copy-note').textContent = text; }
+};
+
+function readFile(file) {
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const recs = receiptsFromCSV(String(fr.result));
+      if (!recs.length) throw new Error('El CSV no tiene facturas.');
+      const key = sortKey(recs[0].fecha);
+      const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+      const label = key ? `${months[+key.slice(5, 7) - 1]} ${key.slice(0, 4)}` : file.name;
+      load(recs, false, label.charAt(0).toUpperCase() + label.slice(1));
+    } catch (err) {
+      S.notices = [{ id: 'error:' + Date.now(), text: 'No se pudo leer el archivo: ' + err.message }];
+      showNotices();
+    }
+  };
+  fr.readAsText(file, 'utf-8');
+}
+$('file').addEventListener('change', (e) => readFile(e.target.files[0]));
+let dragDepth = 0;
+addEventListener('dragenter', (e) => { e.preventDefault(); dragDepth++; $('drop').hidden = false; });
+addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; $('drop').hidden = true; } });
+addEventListener('dragover', (e) => e.preventDefault());
+addEventListener('drop', (e) => { e.preventDefault(); dragDepth = 0; $('drop').hidden = true; readFile(e.dataTransfer.files[0]); });
+
+// A page saved with "Guardar página para el admin" carries its month inside; otherwise start with example data
+const savedEl = document.getElementById('saved-data');
+if (savedEl) {
+  const d = JSON.parse(savedEl.textContent);
+  CSV = d.csv;
+  if (d.people) setPeople(d.people);
+  load(d.recs, d.demo, d.label, { choice: d.choice, unsure: d.unsure });
+  const when = new Date(d.savedAt).toLocaleString('es-PY', { dateStyle: 'medium', timeStyle: 'short' });
+  S.notices.unshift({ id: 'saved:' + d.savedAt, text: `Copia guardada el ${when}, con las correcciones ya hechas. Tocá "Guardar resultado" para ver la comparación y las facturas cambiadas.` });
+  showNotices();
+} else load(exampleReceipts(), true, 'Septiembre 2026');
+</script>
