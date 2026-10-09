@@ -10,7 +10,7 @@ Everything runs in the browser. The CSV is read on your own computer and never u
 
 Open `mockups/comisiones.html` in a browser and load `ejemplo/facturas-septiembre-ejemplo.csv`. That file is made up (fake patients, fake invoice numbers) but has the same columns and format as the real export.
 
-The first time you use it with real data, open **Ajustes** and put in each person's name and their user exactly as it shows in the "COBRADO POR" column. That stays in your browser only, so no names are in the code.
+The first time you use it with real data, click the ✎ at the top right and put in each person exactly as they show up in the "COBRADO POR" column. The buttons use the first name (so "ANTONIO GONZALEZ VERA" becomes "Antonio"). That stays in your browser only, so no names are in the code.
 
 ## The rules it uses
 
